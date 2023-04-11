@@ -102,7 +102,6 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handles POST requests to the server """
-        self._set_headers(201)
 
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
@@ -113,13 +112,18 @@ class HandleRequests(BaseHTTPRequestHandler):
         new_order = None
 
         if resource == "orders":
-            new_order = create_order(post_body)
+            if "metalId" in post_body and "sizeId" in post_body and "settingId" in post_body and "styleId" in post_body:
+                self._set_headers(201)
+                new_order = create_order(post_body)
+            else:
+                self._set_headers(400)
+                new_order = {"message": f'{"please enter a metal" if "metalId" not in post_body else ""}{"please enter a size" if "sizeId" not in post_body else ""}{"please enter a style" if "styleId" not in post_body else ""}{"please enter a setting" if "settingId" not in post_body else ""}'}
 
-        self.wfile.write(json.dumps(new_order).encode())
+            self.wfile.write(json.dumps(new_order).encode())
 
     def do_PUT(self):
         """Handles PUT requests to the server """
-        self._set_headers(204)
+
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
@@ -127,7 +131,11 @@ class HandleRequests(BaseHTTPRequestHandler):
         (resource, id) = self.parse_url(self.path)
 
         if resource == "orders":
-            update_order(id, post_body)
+            self._set_headers(405)
+            response = {
+                "message": "This order is currently in production and cannot be modified"}
+            self.wfile.write(json.dumps(response).encode())
+            # update_order(id, post_body)
 
         self.wfile.write("".encode())
 

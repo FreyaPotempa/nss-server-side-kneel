@@ -26,41 +26,76 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """Handles GET requests to the server """
-        self._set_headers(200)
         response = {}
         (resource, id) = self.parse_url(self.path)
 
         if resource == "metals":
             if id is not None:
                 response = get_single_metal(id)
+
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = {
+                        "message": "This metal does not exist in this dimension"}
+
             else:
+                self._set_headers(200)
                 response = get_all_metals()
 
         elif resource == "styles":
             if id is not None:
                 response = get_single_style(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = {
+                        "message": "that style wouldn't look good on you"}
 
             else:
+                self._set_headers(200)
                 response = get_all_styles()
 
         elif resource == "sizes":
             if id is not None:
                 response = get_single_size(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = {
+                        "message": "these are not the sizes you're looking for"}
 
             else:
+                self._set_headers(200)
                 response = get_all_sizes()
 
         elif resource == "settings":
             if id is not None:
                 response = get_single_setting(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = {
+                        "message": "this setting seems to have evaporated"}
 
             else:
+                self._set_headers(200)
                 response = get_all_settings()
 
         elif resource == "orders":
             if id is not None:
                 response = get_single_order(id)
+                if response is not None:
+                    self._set_headers(200)
+                else:
+                    self._set_headers(404)
+                    response = {"message": "this order must be in the ether"}
             else:
+                self._set_headers(200)
                 response = get_all_orders()
 
         self.wfile.write(json.dumps(response).encode())

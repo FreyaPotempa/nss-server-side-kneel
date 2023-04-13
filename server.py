@@ -1,38 +1,47 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from repository import all, retrieve, create, update
+# Import this stdlib package first
+from urllib.parse import urlparse
 
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Controls the functionality of any GET, PUT, POST, DELETE requests to the server
     """
 
-    def parse_url(self, path):
-        '''Just like splitting a string in JavaScript. If the path is "/animals/1", the resulting list will have "" at index 0, "animals" at index 1, and "1" at index 2.'''
+    # Replace existing function with this
 
-        path_params = path.split("/")
-        resource = path_params[1]
+    def parse_url(self, path):
+        '''new parsing function for expandable queries'''
+        url_components = urlparse(path)
+        path_params = url_components.path.strip("/").split("/")
+        query_params = url_components.query.split("&")
+        resource = path_params[0]
         id = None
 
-        # Try to get item at index 2
         try:
-            id = int(path_params[2])
+            id = int(path_params[1])
         except IndexError:
             pass
         except ValueError:
             pass
 
-        return (resource, id)
+        return (resource, id, query_params)
 
     def do_GET(self):
         """Handles GET requests to the server """
         response = {}
-        (resource, id) = self.parse_url(self.path)
+        (resource, id, query_params) = self.parse_url(self.path)
+        print("resource", resource)
+        print("id", id)
+        print("params", query_params)
 
         if id is not None:
-            response = retrieve(resource, id)
+            response = retrieve(resource, id, query_params)
+
         else:
             response = all(resource)
+            print("response", response)
 
         if response is not None:
             self._set_headers(200)

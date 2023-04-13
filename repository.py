@@ -115,48 +115,91 @@ def all(resource):
         return DATABASE[resource]
 
 
-def retrieve(resource, id):
+def retrieve(resource, id, query_params):
     '''get a single item'''
-    requested_resource = None
+    if resource not in DATABASE.keys():
+        return None
 
-    if resource in DATABASE.keys():
-        asset_list = DATABASE[resource]
+    if resource == "orders":
+        asset_list = DATABASE["orders"]
+        requested_resource = None
         matching_metal = {}
         matching_size = {}
         matching_style = {}
         matching_setting = {}
-
-        for asset in asset_list:
-            if asset["id"] == id:
-                requested_resource = asset
-                for metal in DATABASE["metals"]:
-                    if requested_resource["metalId"] == metal["id"]:
-                        matching_metal = metal
-                for size in DATABASE["sizes"]:
-                    if requested_resource["sizeId"] == size["id"]:
-                        matching_size = size
-                for setting in DATABASE["settings"]:
-                    if requested_resource["settingId"] == setting["id"]:
-                        matching_setting = setting
-                for style in DATABASE["styles"]:
-                    if requested_resource["styleId"] == style["id"]:
-                        matching_style = style
-
-                requested_resource["metal"] = matching_metal
-                requested_resource["size"] = matching_size
-                requested_resource["setting"] = matching_setting
-                requested_resource["style"] = matching_style
-                total_price = requested_resource["style"]["price"] + requested_resource["metal"]["price"] + \
-                    requested_resource["size"]["price"] + \
-                    requested_resource["setting"]["price"]
-                requested_resource["total price"] = total_price
-
-                requested_resource.pop("settingId")
-                requested_resource.pop("metalId")
-                requested_resource.pop("sizeId")
-                requested_resource.pop("styleId")
-
+        for order in asset_list:
+            if order["id"] == id:
+                requested_resource = order
+                price = 0
+                if query_params:
+                    for query in query_params:
+                        if query == "sizes":
+                            matching_size = next(
+                                (size for size in DATABASE["sizes"] if size["id"] == requested_resource.get("sizeId")), None)
+                            requested_resource["size"] = matching_size
+                            price += requested_resource["size"]["price"]
+                            break
+                        if query == "settings":
+                            matching_setting = next(
+                                (setting for setting in DATABASE["settings"] if setting["id"] == requested_resource["settingId"]), None)
+                            requested_resource["setting"] = matching_setting
+                            price += requested_resource["setting"]["price"]
+                        if query == "styles":
+                            matching_style = next(
+                                (style for style in DATABASE["styles"] if style["id"] == requested_resource["styleId"]), None)
+                            requested_resource["style"] = matching_style
+                            price += requested_resource["style"]["price"]
+                        if query == "metals":
+                            matching_metal = next(
+                                (metal for metal in DATABASE["metals"] if metal["id"] == requested_resource["metalId"]), None)
+                            requested_resource["metal"] = matching_metal
+                            price += requested_resource["metal"]["price"]
+                requested_resource["price"] = price
+                # else:
+                #     requested_resource = resource
     return requested_resource
+
+    # if requested_resource is not None and query_params is not None:
+    #     for param in query_params:
+    #         if param in DATABASE.keys():
+    #             params_list = DATABASE[param]
+    #             for expandable in params_list:
+    #                 if expandable["id"] == requested_resource["id"]:
+    #                     requested_resource["expand"] = expandable
+    #                     break
+
+    # if query_params in DATABASE.keys():
+    #     params_list = DATABASE[query_params]
+    #     for param in params_list:
+    #         if param["id"] == requested_resource["id"]:
+    #             expandable = param
+    #     requested_resource["expand"] = expandable
+    # # for metal in DATABASE["metals"]:
+    # #     if requested_resource["metalId"] == metal["id"]:
+    # #         matching_metal = metal
+    # # for size in DATABASE["sizes"]:
+    # #     if requested_resource["sizeId"] == size["id"]:
+    # #         matching_size = size
+    # # for setting in DATABASE["settings"]:
+    # #     if requested_resource["settingId"] == setting["id"]:
+    # #         matching_setting = setting
+    # # for style in DATABASE["styles"]:
+    # #     if requested_resource["styleId"] == style["id"]:
+    # #         matching_style = style
+
+    # # requested_resource["metal"] = matching_metal
+    # # requested_resource["size"] = matching_size
+    # # requested_resource["setting"] = matching_setting
+    # # requested_resource["style"] = matching_style
+    # # total_price = requested_resource["style"]["price"] + requested_resource["metal"]["price"] + \
+    #     requested_resource["size"]["price"] + \
+    #     requested_resource["setting"]["price"]
+    # requested_resource["total price"] = total_price
+
+    # requested_resource.pop("settingId")
+    # requested_resource.pop("metalId")
+    # requested_resource.pop("sizeId")
+    # requested_resource.pop("styleId")
 
 
 def create(post_body):

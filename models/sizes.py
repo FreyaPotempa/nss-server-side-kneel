@@ -1,7 +1,7 @@
 class Size():
     '''defines class for size'''
 
-    def __init__(self, id, carats, price):
+    def __init__(self, id, size, price):
         self.id = id
-        self.carats = carats
+        self.size = size
         self.price = price

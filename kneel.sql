@@ -70,3 +70,9 @@ SELECT
     o.setting_id,
     o.size_id
     FROM Orders o
+
+SELECT        
+    m.id,
+    m.metal,         
+    m.price
+FROM Metals m

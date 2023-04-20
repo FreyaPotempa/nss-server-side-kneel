@@ -1,4 +1,5 @@
 import json
+from urllib.parse import urlparse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from views import get_all_sizes, get_all_metals, get_all_styles, get_all_settings, get_single_setting, get_all_orders, get_single_order, get_single_metal, update_metal, get_single_size, get_single_style, create_order, delete_order, update_order
 
@@ -10,45 +11,50 @@ class HandleRequests(BaseHTTPRequestHandler):
     def parse_url(self, path):
         '''Just like splitting a string in JavaScript. If the path is "/animals/1", the resulting list will have "" at index 0, "animals" at index 1, and "1" at index 2.'''
 
-        path_params = path.split("/")
-        resource = path_params[1]
+        url_components = urlparse(path)
+        path_params = url_components.path.strip("/").split("/")
+        query_params = []
+
+        if url_components.query != "":
+            query_params = url_components.query.split("&")
+
+        resource = path_params[0]
         id = None
 
         # Try to get item at index 2
         try:
-            id = int(path_params[2])
-        except IndexError:
-            pass
-        except ValueError:
+            id = int(path_params[1])
+        except (IndexError, ValueError):
             pass
 
-        return (resource, id)
+        return (resource, id, query_params)
 
     def do_GET(self):
         """Handles GET requests to the server """
         self._set_headers(200)
         response = {}
-        (resource, id) = self.parse_url(self.path)
+        parsed = self.parse_url(self.path)
+        (resource, id, query_params) = parsed
 
         if resource == "metals":
             if id is not None:
                 response = get_single_metal(id)
             else:
-                response = get_all_metals()
+                response = get_all_metals(query_params)
 
         elif resource == "styles":
             if id is not None:
                 response = get_single_style(id)
 
             else:
-                response = get_all_styles()
+                response = get_all_styles(query_params)
 
         elif resource == "sizes":
             if id is not None:
                 response = get_single_size(id)
 
             else:
-                response = get_all_sizes()
+                response = get_all_sizes(query_params)
 
         elif resource == "settings":
             if id is not None:
